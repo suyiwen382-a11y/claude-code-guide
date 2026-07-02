@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code 三大能力 · 学习指南（暗色版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* dark dev-tech palette (syntax-editor inspired) */
+    --bg:#0E1014;
+    --bg-2:#131720;
+    --surface:#171C26;
+    --surface-2:#1D2430;
+    --line:#262E3B;
+    --line-2:#354052;
+    --text:#ECEEF1;
+    --text-soft:#A4ADBB;
+    --text-faint:#6A7482;
+    /* three semantic accents, one per concept, locked */
+    --loop:#5AA2FF;   --loop-dim:rgba(90,162,255,.13);  --loop-deep:#173154;
+    --skill:#4FD08A;  --skill-dim:rgba(79,208,138,.13); --skill-deep:#123a2b;
+    --flow:#F5B84E;   --flow-dim:rgba(245,184,78,.13);  --flow-deep:#402f10;
+    --good:#4FD08A;
+    --bad:#FF6B6B;
+    --display:'Space Grotesk','Noto Sans SC',-apple-system,'PingFang SC',sans-serif;
+    --sans:'Noto Sans SC','Space Grotesk',-apple-system,'PingFang SC','Segoe UI',sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,'Menlo',monospace;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-weight:400;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--loop);color:#04101f;}
+
+  /* faint fixed grain-free dot texture, pointer-safe */
+  body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:radial-gradient(circle at 15% 12%,rgba(90,162,255,.06),transparent 40%),
+               radial-gradient(circle at 85% 8%,rgba(245,184,78,.05),transparent 42%),
+               radial-gradient(circle at 60% 95%,rgba(79,208,138,.05),transparent 45%);}
+  .wrap,nav,header,section,footer{position:relative;z-index:1;}
+
+  /* progress */
+  #progress{position:fixed;top:0;left:0;height:2px;width:0;z-index:200;
+    background:linear-gradient(90deg,var(--loop),var(--skill),var(--flow));transition:width .1s linear;}
+
+  /* nav */
+  nav{position:fixed;top:0;left:0;right:0;height:60px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 clamp(18px,5vw,56px);background:rgba(14,16,20,.72);backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);z-index:150;}
+  nav .brand{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.01em;color:var(--text);}
+  nav .brand span{color:var(--loop);}
+  nav .links{display:flex;gap:clamp(12px,2vw,26px);font-size:13px;color:var(--text-soft);}
+  nav .links a{color:inherit;text-decoration:none;position:relative;padding:4px 0;transition:color .2s;white-space:nowrap;}
+  nav .links a:hover{color:var(--text);}
+  nav .links a::after{content:"";position:absolute;left:0;bottom:-1px;width:0;height:1.5px;background:var(--loop);transition:width .25s;}
+  nav .links a:hover::after{width:100%;}
+  @media(max-width:730px){nav .links a[data-opt]{display:none;}}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 clamp(20px,5vw,44px);}
+  .narrow{max-width:820px;}
+
+  /* HERO */
+  header.hero{min-height:100dvh;display:flex;align-items:center;padding:96px 0 60px;}
+  .hero-grid{display:grid;grid-template-columns:1.35fr .9fr;gap:clamp(30px,5vw,64px);align-items:center;width:100%;}
+  @media(max-width:860px){.hero-grid{grid-template-columns:1fr;gap:36px;}}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--loop);font-weight:500;margin-bottom:26px;}
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--loop);}
+  header.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(38px,6.4vw,68px);line-height:1.08;
+    letter-spacing:-.015em;margin-bottom:26px;color:#fff;}
+  header.hero h1 em{font-style:normal;color:var(--loop);}
+  header.hero h1 .b{color:var(--skill);} header.hero h1 .c{color:var(--flow);}
+  header.hero .lead{font-size:clamp(16px,2vw,19px);color:var(--text-soft);max-width:540px;line-height:1.7;}
+  header.hero .lead b{color:var(--text);font-weight:500;}
+
+  /* hero legend = the semantic color key, doubles as the asset */
+  .legend{display:flex;flex-direction:column;gap:12px;}
+  .leg{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;
+    transition:transform .3s,border-color .3s;}
+  .leg:hover{transform:translateX(5px);}
+  .leg .sw{width:12px;height:36px;border-radius:5px;}
+  .leg .txt .k{font-family:var(--display);font-weight:600;font-size:16px;color:var(--text);}
+  .leg .txt .d{font-size:12.5px;color:var(--text-faint);margin-top:1px;}
+  .leg .ax{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--text-faint);text-align:right;}
+  .leg.l1{border-left:2px solid var(--loop);} .leg.l1 .sw{background:var(--loop);} .leg.l1:hover{border-color:var(--loop);}
+  .leg.l2{border-left:2px solid var(--skill);} .leg.l2 .sw{background:var(--skill);} .leg.l2:hover{border-color:var(--skill);}
+  .leg.l3{border-left:2px solid var(--flow);} .leg.l3 .sw{background:var(--flow);} .leg.l3:hover{border-color:var(--flow);}
+
+  /* framing block */
+  .framing{padding:56px 0;}
+  .framing .big{font-family:var(--display);font-size:clamp(21px,3vw,30px);line-height:1.5;font-weight:500;color:var(--text);max-width:760px;letter-spacing:-.01em;}
+  .framing .big b{color:var(--loop);font-weight:600;}
+  .framing .big .s2{color:var(--skill);font-weight:600;} .framing .big .s3{color:var(--flow);font-weight:600;}
+  .framing p{font-size:15px;color:var(--text-soft);margin-top:22px;max-width:680px;line-height:1.8;}
+
+  hr.div{border:none;height:1px;background:var(--line);margin:0;}
+
+  /* chapter */
+  section.ch{padding:78px 0;}
+  .ch-head{display:flex;align-items:flex-start;gap:clamp(16px,3vw,30px);margin-bottom:30px;}
+  .ch-head .no{font-family:var(--display);font-weight:700;font-size:clamp(56px,10vw,104px);line-height:.82;letter-spacing:-.03em;}
+  .ch-head .meta{padding-top:6px;}
+  .ch-head .meta .doc{font-family:var(--mono);font-size:12px;letter-spacing:.04em;color:var(--text-faint);margin-bottom:8px;}
+  .ch-head .meta h2{font-family:var(--display);font-size:clamp(26px,4.2vw,40px);font-weight:700;line-height:1.12;color:#fff;letter-spacing:-.01em;}
+  .ch-head .meta h2 em{font-style:normal;}
+  .c1 .no{color:var(--loop);} .c1 h2 em{color:var(--loop);}
+  .c2 .no{color:var(--skill);} .c2 h2 em{color:var(--skill);}
+  .c3 .no{color:var(--flow);} .c3 h2 em{color:var(--flow);}
+
+  .essence{font-family:var(--display);font-size:clamp(18px,2.4vw,23px);line-height:1.55;font-weight:500;color:var(--text);
+    padding:2px 0 2px 22px;margin:8px 0 40px;max-width:800px;letter-spacing:-.005em;}
+  .c1 .essence{border-left:2px solid var(--loop);} .c2 .essence{border-left:2px solid var(--skill);} .c3 .essence{border-left:2px solid var(--flow);}
+  .essence b{font-weight:700;}
+  .c1 .essence b{color:var(--loop);} .c2 .essence b{color:var(--skill);} .c3 .essence b{color:var(--flow);}
+
+  h3.blk{font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:.01em;color:var(--text-soft);
+    margin:44px 0 18px;display:flex;align-items:center;gap:11px;text-transform:none;}
+  h3.blk .tick{width:7px;height:16px;border-radius:2px;}
+  .c1 h3.blk .tick{background:var(--loop);} .c2 h3.blk .tick{background:var(--skill);} .c3 h3.blk .tick{background:var(--flow);}
+
+  p.body{font-size:15px;color:var(--text-soft);margin:15px 0;line-height:1.8;max-width:800px;}
+  p.body b{color:var(--text);font-weight:500;}
+
+  /* code chip */
+  code.k{font-family:var(--mono);font-size:.84em;background:var(--surface-2);border:1px solid var(--line-2);
+    color:var(--text);padding:2px 8px;border-radius:6px;white-space:nowrap;}
+  .c1 code.k{color:var(--loop);border-color:var(--loop-deep);}
+  .c2 code.k{color:var(--skill);border-color:var(--skill-deep);}
+  .c3 code.k{color:var(--flow);border-color:var(--flow-deep);}
+
+  /* loop table */
+  .tbl{width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+  .tbl th{text-align:left;font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text-faint);padding:13px 16px;border-bottom:1px solid var(--line-2);background:var(--bg-2);}
+  .tbl td{padding:15px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--text-soft);line-height:1.55;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl td:first-child{color:var(--text);font-weight:500;white-space:nowrap;}
+  .tbl td b{color:var(--text);font-weight:600;}
+  .tbl tr:hover td{background:var(--loop-dim);}
+  @media(max-width:680px){.tbl,.tbl thead,.tbl tbody,.tbl th,.tbl td,.tbl tr{display:block;}
+    .tbl thead{display:none;} .tbl td{border:none;padding:3px 16px;}
+    .tbl tr{border-bottom:1px solid var(--line-2);padding:12px 0;}
+    .tbl td:first-child{padding-top:13px;font-size:15px;}
+    .tbl td[data-l]::before{content:attr(data-l);display:block;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+      text-transform:uppercase;color:var(--text-faint);margin-bottom:2px;}}
+
+  /* keypoint row (ch1) */
+  .keys{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0;}
+  @media(max-width:760px){.keys{grid-template-columns:1fr;}}
+  .key{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;transition:transform .28s,border-color .28s;}
+  .key:hover{transform:translateY(-4px);border-color:var(--loop);}
+  .key .tag{font-family:var(--mono);font-size:11px;color:var(--loop);letter-spacing:.04em;margin-bottom:9px;}
+  .key h4{font-size:15px;font-weight:600;color:var(--text);margin-bottom:7px;}
+  .key p{font-size:13px;color:var(--text-soft);line-height:1.65;}
+
+  /* callout */
+  .call{border-radius:14px;padding:20px 22px;margin:26px 0;font-size:14.5px;line-height:1.72;border:1px solid var(--line);background:var(--surface);max-width:840px;}
+  .call .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-bottom:9px;display:block;}
+  .call b{color:var(--text);font-weight:600;}
+  .call.loop{background:linear-gradient(180deg,rgba(90,162,255,.08),rgba(90,162,255,.02));border-color:var(--loop-deep);}
+  .call.loop .lbl{color:var(--loop);}
+  .call.skill{background:linear-gradient(180deg,rgba(79,208,138,.08),rgba(79,208,138,.02));border-color:var(--skill-deep);}
+  .call.skill .lbl{color:var(--skill);}
+  .call.flow{background:linear-gradient(180deg,rgba(245,184,78,.08),rgba(245,184,78,.02));border-color:var(--flow-deep);}
+  .call.flow .lbl{color:var(--flow);}
+
+  /* ch2 split */
+  .split{display:grid;grid-template-columns:.72fr 1fr;gap:clamp(24px,4vw,52px);align-items:start;}
+  @media(max-width:820px){.split{grid-template-columns:1fr;gap:26px;}}
+  .split .side{position:sticky;top:88px;}
+  @media(max-width:820px){.split .side{position:static;}}
+
+  /* skill category chips */
+  .cats{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px;}
+  .cat{font-size:12.5px;color:var(--text-soft);background:var(--surface);border:1px solid var(--line);
+    border-radius:20px;padding:6px 13px;display:inline-flex;align-items:center;gap:7px;transition:all .2s;}
+  .cat:hover{border-color:var(--skill);color:var(--text);}
+  .cat i{width:5px;height:5px;border-radius:50%;background:var(--skill);font-style:normal;}
+
+  /* accordion (ch2 principles) */
+  .acc{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line);}
+  .acc-item{border-bottom:1px solid var(--line);}
+  .acc-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:17px 4px;
+    display:flex;align-items:center;gap:15px;font-family:var(--sans);color:var(--text);transition:color .2s;}
+  .acc-btn:hover{color:var(--skill);}
+  .acc-btn .n{font-family:var(--mono);font-size:12px;color:var(--skill);width:24px;flex-shrink:0;}
+  .acc-btn .t{font-size:15.5px;font-weight:500;flex:1;}
+  .acc-btn .t small{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--text-faint);margin-left:8px;letter-spacing:0;}
+  .acc-btn .pm{width:16px;height:16px;flex-shrink:0;position:relative;transition:transform .3s;}
+  .acc-btn .pm::before,.acc-btn .pm::after{content:"";position:absolute;background:var(--text-faint);border-radius:2px;}
+  .acc-btn .pm::before{top:7px;left:1px;width:14px;height:2px;}
+  .acc-btn .pm::after{top:1px;left:7px;width:2px;height:14px;transition:opacity .3s;}
+  .acc-item.open .acc-btn{color:var(--skill);}
+  .acc-item.open .pm{transform:rotate(180deg);}
+  .acc-item.open .pm::after{opacity:0;}
+  .acc-item.open .pm::before{background:var(--skill);}
+  .acc-panel{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
+  .acc-panel .inner{padding:0 4px 20px 43px;font-size:14px;color:var(--text-soft);line-height:1.75;max-width:640px;}
+  .acc-panel .inner b{color:var(--text);font-weight:500;}
+
+  /* ch3 failure modes */
+  .fails{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:20px 0;}
+  @media(max-width:760px){.fails{grid-template-columns:1fr;}}
+  .fail{border:1px solid var(--line);border-left:3px solid var(--bad);border-radius:12px;padding:19px 20px;background:var(--surface);}
+  .fail .en{font-family:var(--mono);font-size:11px;color:var(--bad);letter-spacing:.03em;margin-bottom:7px;}
+  .fail h4{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .fail p{font-size:13px;color:var(--text-soft);line-height:1.6;}
+
+  /* ch3 patterns as numbered rows */
+  .pats{margin:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 30px;}
+  @media(max-width:720px){.pats{grid-template-columns:1fr;}}
+  .pat{display:grid;grid-template-columns:auto 1fr;gap:15px;padding:16px 4px;border-bottom:1px solid var(--line);align-items:start;}
+  .pat .idx{font-family:var(--mono);font-size:13px;color:var(--flow);font-weight:500;padding-top:2px;}
+  .pat h4{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:4px;}
+  .pat h4 small{display:block;font-family:var(--mono);font-weight:400;font-size:11px;color:var(--text-faint);margin-top:2px;}
+  .pat p{font-size:12.5px;color:var(--text-soft);line-height:1.6;}
+
+  .whenwrap{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:24px 0;}
+  @media(max-width:680px){.whenwrap{grid-template-columns:1fr;}}
+  .when{border-radius:13px;padding:18px 20px;border:1px solid var(--line);background:var(--surface);}
+  .when .h{font-family:var(--display);font-weight:600;font-size:14.5px;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .when.yes .h{color:var(--good);} .when.no .h{color:var(--bad);}
+  .when p{font-size:13.5px;color:var(--text-soft);line-height:1.65;}
+  .when p b{color:var(--text);font-weight:500;}
+
+  /* SYNTHESIS */
+  .synth{background:linear-gradient(180deg,#0B0D11,#10141c);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:82px 0;}
+  .synth .eyebrow{color:var(--flow);} .synth .eyebrow::before{background:var(--flow);}
+  .synth h2{font-family:var(--display);font-size:clamp(26px,4.4vw,42px);font-weight:700;color:#fff;letter-spacing:-.015em;line-height:1.14;margin-bottom:18px;}
+  .synth .sub{font-size:15.5px;color:var(--text-soft);max-width:660px;line-height:1.8;}
+  .synth .sub b{color:var(--text);font-weight:500;}
+  .axes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:40px 0 30px;}
+  @media(max-width:760px){.axes{grid-template-columns:1fr;}}
+  .axc{border:1px solid var(--line);border-radius:16px;padding:24px 22px;background:var(--surface);position:relative;overflow:hidden;}
+  .axc .glyph{font-family:var(--mono);font-size:26px;font-weight:500;margin-bottom:14px;display:block;}
+  .axc .nm{font-family:var(--display);font-size:19px;font-weight:600;color:var(--text);margin-bottom:2px;}
+  .axc .ax{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px;}
+  .axc p{font-size:13.5px;color:var(--text-soft);line-height:1.62;}
+  .axc.x1{border-top:3px solid var(--loop);} .axc.x1 .glyph,.axc.x1 .ax{color:var(--loop);}
+  .axc.x2{border-top:3px solid var(--skill);} .axc.x2 .glyph,.axc.x2 .ax{color:var(--skill);}
+  .axc.x3{border-top:3px solid var(--flow);} .axc.x3 .glyph,.axc.x3 .ax{color:var(--flow);}
+  .combo{border:1px solid var(--line-2);border-radius:16px;padding:26px 24px;background:var(--bg-2);text-align:center;}
+  .combo .eq{font-family:var(--mono);font-size:13.5px;color:var(--text-soft);line-height:2.3;}
+  .combo .eq .p{color:var(--text);font-weight:500;}
+  .combo .concl{font-family:var(--display);font-size:clamp(17px,2.5vw,22px);color:#fff;margin-top:16px;line-height:1.5;font-weight:500;}
+  .combo .concl b{color:var(--flow);}
+
+  /* QUIZ */
+  .quiz{padding:80px 0 30px;}
+  .quiz .head{text-align:center;margin-bottom:8px;}
+  .quiz .head h2{font-family:var(--display);font-size:clamp(28px,4.6vw,44px);font-weight:700;color:#fff;letter-spacing:-.015em;}
+  .quiz .head p{color:var(--text-soft);font-size:15px;margin-top:12px;}
+  .quiz .head p code{font-family:var(--mono);color:var(--loop);font-size:13px;}
+  .score{position:sticky;top:60px;z-index:100;background:rgba(19,23,32,.9);backdrop-filter:blur(12px);
+    border:1px solid var(--line);border-radius:12px;padding:12px 20px;margin:26px auto 30px;max-width:820px;
+    display:flex;align-items:center;justify-content:space-between;font-size:13.5px;}
+  .score .st{color:var(--text-soft);font-family:var(--mono);font-size:12.5px;letter-spacing:.02em;}
+  .score .st b{color:var(--loop);font-size:15px;}
+  .score button{font-family:var(--mono);font-size:12px;color:var(--text-soft);background:none;border:1px solid var(--line-2);
+    padding:7px 14px;border-radius:8px;cursor:pointer;transition:all .2s;}
+  .score button:hover{background:var(--text);color:var(--bg);border-color:var(--text);}
+  #quizBox{max-width:820px;margin:0 auto;}
+  .q{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px 24px 20px;margin-bottom:16px;}
+  .q .qn{display:flex;gap:12px;align-items:baseline;margin-bottom:16px;}
+  .q .qn .qi{font-family:var(--mono);font-weight:500;color:var(--loop);font-size:13px;flex-shrink:0;}
+  .q .qn .qt{font-size:16px;font-weight:500;color:var(--text);line-height:1.5;}
+  .q .qn .qt code{font-family:var(--mono);font-size:.82em;background:var(--surface-2);border:1px solid var(--line-2);color:var(--text);padding:1px 6px;border-radius:5px;}
+  .q .qn .badges{margin-left:auto;display:flex;align-items:center;gap:7px;flex-shrink:0;align-self:flex-start;}
+  .q .qn .tg{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:3px 9px;border-radius:20px;flex-shrink:0;}
+  .tg.t1{background:var(--loop-dim);color:var(--loop);} .tg.t2{background:var(--skill-dim);color:var(--skill);} .tg.t3{background:var(--flow-dim);color:var(--flow);} .tg.t4{background:var(--surface-2);color:var(--text-soft);}
+  .q .qn .lvl{font-family:var(--mono);font-size:10px;letter-spacing:.02em;padding:3px 8px;border-radius:20px;border:1px solid var(--line-2);color:var(--text-faint);flex-shrink:0;white-space:nowrap;}
+  .lvl.l2{color:var(--text-soft);background:var(--surface-2);}
+  .lvl.l3{color:var(--text);background:var(--surface-2);border-color:var(--text-faint);font-weight:500;}
+  .opts{display:flex;flex-direction:column;gap:9px;}
+  .opt{display:flex;gap:12px;align-items:flex-start;padding:13px 15px;border:1px solid var(--line-2);border-radius:10px;cursor:pointer;
+    font-size:14.5px;color:var(--text-soft);transition:all .16s;background:var(--bg-2);line-height:1.5;}
+  .opt:hover{border-color:var(--text-faint);background:var(--surface-2);color:var(--text);}
+  .opt:active{transform:scale(.992);}
+  .opt .kx{font-family:var(--mono);font-weight:500;font-size:12.5px;color:var(--text-faint);flex-shrink:0;width:15px;text-align:center;}
+  .opt.correct{background:rgba(79,208,138,.12);border-color:var(--good);color:#bfe9cf;}
+  .opt.correct .kx{color:var(--good);}
+  .opt.wrong{background:rgba(255,107,107,.1);border-color:var(--bad);color:#f2c3bd;}
+  .opt.wrong .kx{color:var(--bad);}
+  .opt.disabled{cursor:default;pointer-events:none;}
+  .opt.dim{opacity:.5;}
+  .explain{margin-top:14px;padding:14px 16px;border-radius:10px;background:var(--bg-2);border:1px solid var(--line);
+    font-size:13.5px;color:var(--text-soft);line-height:1.72;display:none;}
+  .explain.show{display:block;animation:fade .35s ease;}
+  .explain b{color:var(--text);font-weight:500;}
+  .explain .v{font-family:var(--mono);font-weight:500;margin-right:7px;}
+  .explain .v.ok{color:var(--good);} .explain .v.no{color:var(--bad);}
+  @keyframes fade{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:none;}}
+  .result{max-width:820px;margin:24px auto 0;text-align:center;padding:38px 30px;border-radius:18px;
+    background:linear-gradient(180deg,#0B0D11,#10141c);border:1px solid var(--line-2);display:none;}
+  .result.show{display:block;animation:fade .5s ease;}
+  .result .big{font-family:var(--display);font-size:52px;font-weight:700;color:var(--loop);line-height:1;}
+  .result .big span{font-size:24px;color:var(--text-faint);}
+  .result .msg{font-family:var(--display);font-size:20px;color:#fff;margin:16px 0 6px;font-weight:600;}
+  .result .rsub{font-size:14px;color:var(--text-soft);}
+
+  /* footer */
+  footer{padding:56px 0 78px;border-top:1px solid var(--line);margin-top:40px;}
+  footer h3{font-family:var(--display);font-size:17px;font-weight:600;color:var(--text);margin-bottom:18px;}
+  footer .srcs{display:flex;flex-direction:column;gap:10px;max-width:720px;}
+  footer a.src{display:flex;align-items:center;gap:13px;text-decoration:none;color:var(--text-soft);font-size:14px;
+    padding:14px 16px;border:1px solid var(--line);border-radius:11px;background:var(--surface);transition:all .2s;}
+  footer a.src:hover{border-color:var(--loop);color:var(--text);transform:translateX(5px);}
+  footer a.src .sw{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  footer a.src .arw{margin-left:auto;font-family:var(--mono);color:var(--text-faint);}
+  footer .note{margin-top:28px;font-size:12.5px;color:var(--text-faint);line-height:1.7;font-family:var(--mono);letter-spacing:.01em;max-width:720px;}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
+  .rv.in{opacity:1;transform:none;}
+
+  @media(prefers-reduced-motion:reduce){
+    *{scroll-behavior:auto !important;}
+    .rv{opacity:1 !important;transform:none !important;transition:none !important;}
+    .acc-panel{transition:none !important;}
+    .leg:hover,.key:hover,.opt:active,footer a.src:hover{transform:none !important;}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<nav>
+  <div class="brand">Claude <span>Code</span> 学习指南</div>
+  <div class="links">
+    <a href="#framing">导读</a>
+    <a href="#loops" data-opt>Loops</a>
+    <a href="#skills" data-opt>Skills</a>
+    <a href="#workflows" data-opt>Workflows</a>
+    <a href="#synthesis">合体</a>
+    <a href="#quiz">自测</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Claude Code 官方文档</span>
+      <h1>把 Claude Code<br>从<em>助手</em>，养成一套<br>会自转的<span class="b">系统</span>。</h1>
+      <p class="lead">三篇官方文档，讲的其实是同一件事的三个切面。读懂它们，你就集齐了让 <b>Claude 自主运转</b>的全部零件。文末有一套自测题。</p>
+    </div>
+    <div class="legend">
+      <div class="leg l1"><div class="sw"></div><div class="txt"><div class="k">Loops</div><div class="d">让它持续、重复地干</div></div><div class="ax">时间</div></div>
+      <div class="leg l2"><div class="sw"></div><div class="txt"><div class="k">Skills</div><div class="d">让它自带专长与踩坑经验</div></div><div class="ax">深度</div></div>
+      <div class="leg l3"><div class="sw"></div><div class="txt"><div class="k">Workflows</div><div class="d">让它指挥多个自己并行</div></div><div class="ax">广度</div></div>
+    </div>
+  </div>
+</header>
+
+<hr class="div">
+
+<!-- FRAMING -->
+<section id="framing" class="framing wrap">
+  <div class="rv">
+    <p class="big">单独看，三篇像三个不相干的功能。叠在一起，它们是一张坐标系：<span class="s2">skills</span> 给深度、<b>loop</b> 给时间、<span class="s3">workflow</span> 给广度。三条轴交汇处，就是这套工具想去的终点。</p>
+    <p>那个终点，是一个你只需<b style="color:var(--text)">定义目标</b>、它就能自己排期、自己判断、自己分工的自主系统。下面每一章都用同一个节奏：它是什么，核心怎么拆，关键洞察在哪，以及怎么上手。</p>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- CHAPTER 1: LOOPS -->
+<section id="loops" class="ch c1 wrap">
+  <div class="ch-head rv">
+    <div class="no">01</div>
+    <div class="meta">
+      <div class="doc">Getting Started with Loops</div>
+      <h2>Loops：让 Claude <em>自己转起来</em></h2>
+    </div>
+  </div>
+
+  <p class="essence rv">Loop 就是让 agent <b>重复一轮又一轮</b>地工作，直到满足某个停止条件。重点不是写一句更聪明的 prompt，而是设计一套让它能自主迭代的系统。</p>
+
+  <h3 class="blk rv"><span class="tick"></span>四种 loop，按"谁触发、何时停"分</h3>
+  <table class="tbl rv">
+    <thead><tr><th>类型</th><th>触发</th><th>停止条件</th><th>适合</th><th>命令</th></tr></thead>
+    <tbody>
+      <tr><td data-l="类型">逐轮</td><td data-l="触发">用户 prompt</td><td data-l="停止">Claude 判断做完，或需要更多输入</td><td data-l="适合">短的、一次性任务</td><td data-l="命令">默认模式</td></tr>
+      <tr><td data-l="类型">目标</td><td data-l="触发">手动实时 prompt</td><td data-l="停止">达成目标，或到最大轮数</td><td data-l="适合">有<b>可衡量退出标准</b>的任务</td><td data-l="命令"><code class="k">/goal</code></td></tr>
+      <tr><td data-l="类型">定时</td><td data-l="触发">指定的时间间隔</td><td data-l="停止">用户取消，或工作完成</td><td data-l="适合">重复性工作、对接外部系统</td><td data-l="命令"><code class="k">/loop</code> <code class="k">/schedule</code></td></tr>
+      <tr><td data-l="类型">主动</td><td data-l="触发">事件或计划，<b>无人实时参与</b></td><td data-l="停止">单任务达标；例程持续到被关闭</td><td data-l="适合">定义清晰的重复工作（bug 分诊、迁移、依赖更新）</td><td data-l="命令">多种组合</td></tr>
+    </tbody>
+  </table>
+
+  <h3 class="blk rv"><span class="tick"></span>三个要记住的点</h3>
+  <div class="keys rv">
+    <div class="key"><div class="tag">/goal</div><h4>用目标消灭"够好了吗"</h4><p>一个评估模型检查是否真达标，避免它半途收工。例：<code class="k">/goal 把首页 Lighthouse 跑到 90+，试 5 次后停</code>。</p></div>
+    <div class="key"><div class="tag">/loop vs /schedule</div><h4>本地 vs 云端</h4><p><b style="color:var(--text)">/loop</b> 在本地按间隔重跑；<b style="color:var(--text)">/schedule</b> 把任务搬到云端持续执行，不再依赖你的电脑开着。</p></div>
+    <div class="key"><div class="tag">self-verify</div><h4>把验证写成 skill</h4><p>把手动检查步骤编码成 skill，让 Claude 端到端自检（起服务，点浏览器，看 console，跑性能审计），loop 才敢放手。</p></div>
+  </div>
+
+  <div class="call loop rv">
+    <span class="lbl">主动 loop 长什么样</span>
+    一个真实例子把上面几块拼在了一起：<b>「/schedule 每小时：检查 #project-feedback 频道的 bug 报告。/goal：本轮找到的每条报告不分诊完、不处理完、不回复完，就不许停。」</b> 这就是无人值守自动化的雏形。
+  </div>
+
+  <p class="body rv"><b>省 token：</b>按复杂度选模型（小任务给更快的模型，判断题才动用最强模型）；把成功和停止标准写精确；先在<b>小数据集</b>上试点再放大；确定性的活用脚本做、别让它推理；例程间隔匹配真实的变化频率；用 <code class="k">/usage</code> <code class="k">/workflows</code> 盯消耗。<b>保质量：</b>代码库保持整洁，让它跟随既有模式；把质量标准写进 skill 让它自检；派<b>第二个 agent</b> 以全新视角做审查。</p>
+
+  <div class="call loop rv" style="background:var(--bg-2);border-color:var(--line-2)">
+    <span class="lbl">一句话</span>
+    从<b>最简单、够用</b>的方式起步。观察它卡在哪、在哪越界、哪里被搞复杂了，再据此迭代，别一上来就堆复杂 loop。
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- CHAPTER 2: SKILLS -->
+<section id="skills" class="ch c2 wrap">
+  <div class="ch-head rv">
+    <div class="no">02</div>
+    <div class="meta">
+      <div class="doc">Lessons from Building Claude Code · How We Use Skills</div>
+      <h2>Skills：把专长<em>打包</em>给 Claude</h2>
+    </div>
+  </div>
+
+  <p class="essence rv">Skill 是一个<b>文件夹</b>，装着指令、脚本和资源，让 agent 能自己发现并调用。常见误解是"它不就是几个 markdown 吗"：其实它是能包含脚本、素材、动态 hook 的结构化目录。</p>
+
+  <div class="split">
+    <div class="side rv">
+      <h3 class="blk"><span class="tick"></span>九类 skill</h3>
+      <p class="body" style="font-size:14px">Anthropic 内部把数百个 skill 归成九类，几乎覆盖所有工程场景。</p>
+      <div class="cats">
+        <span class="cat"><i></i>库 / API 参考</span>
+        <span class="cat"><i></i>产品验证</span>
+        <span class="cat"><i></i>数据获取与分析</span>
+        <span class="cat"><i></i>业务流程自动化</span>
+        <span class="cat"><i></i>脚手架 / 模板</span>
+        <span class="cat"><i></i>代码质量与审查</span>
+        <span class="cat"><i></i>CI/CD 与部署</span>
+        <span class="cat"><i></i>Runbooks</span>
+        <span class="cat"><i></i>基础设施运维</span>
+      </div>
+    </div>
+    <div class="rv">
+      <h3 class="blk"><span class="tick"></span>写好 skill 的九条心法<span style="font-family:var(--mono);font-size:11px;color:var(--text-faint);font-weight:400;margin-left:6px">点开看</span></h3>
+      <div class="acc" id="acc">
+        <div class="acc-item"><button class="acc-btn"><span class="n">01</span><span class="t">别说废话<small>Don't state the obvious</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">不要重复 Claude 已知的东西。要给<b>真正新的洞察</b>，把它推出惯性思维。比如前端设计 skill 就专门教它避开 Inter 字体、紫色渐变这类烂大街的默认套路。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">02</span><span class="t">建一个 Gotchas 段<small>踩坑清单</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">价值最高的内容是记录那些<b>反复失败的点</b>：数据库怪癖（比如某张表是 append-only）、跨系统字段命名不一致、只在生产环境才出现的行为。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">03</span><span class="t">渐进式披露<small>Progressive disclosure</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">用文件夹分层（references / scripts / examples），按当下情境把 Claude <b>指向具体文件</b>，而不是把所有东西塞进一个大文档撑爆上下文。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">04</span><span class="t">别把它焊死在轨道上<small>Avoid railroading</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">给足必要信息，但保留灵活性。让 agent 能按情境调整做法，而不是被强制走一套死板步骤。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">05</span><span class="t">想清楚 setup<small>配置</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">有些 skill 需要用户配置（存在 config.json）。信息缺失时，用 <b>AskUserQuestion</b> 工具做结构化的多选提问，而不是瞎猜。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">06</span><span class="t">描述写给模型，不是写给人<small>Descriptions for models</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">skill 的描述决定它<b>何时被触发</b>。要塞进激活关键词（比如 "babysit"），提升 Claude 识别该用它的准确率。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">07</span><span class="t">帮 Claude 记住<small>Help it remember</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">用 <b>${CLAUDE_PLUGIN_DATA}</b> 环境变量存持久数据：append-only 的日志记录做过什么，或用 JSON 文件维护状态。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">08</span><span class="t">存脚本，让它生成代码<small>Store scripts</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">提供现成的库和辅助函数，让 Claude 专注于<b>组合</b>，而不是每次重造样板。复杂分析和自动化会因此大幅提速。</div></div></div>
+        <div class="acc-item"><button class="acc-btn"><span class="n">09</span><span class="t">按需 hook<small>On-demand hooks</small></span><span class="pm"></span></button><div class="acc-panel"><div class="inner">只在 skill 被调用时才激活的 hook。例如 <b>/careful</b>（拦截破坏性命令）、<b>/freeze</b>（限制只能改指定目录）。</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="call skill rv">
+    <span class="lbl">一个小小的自我实践</span>
+    你正在看的这版页面，就是照第 01 条改的：手搓的第一版用了暖米色底 + 陶土色 + 衬线大标题，正是官方文档点名的"AI 默认套路"。这版换成了<b>暗色代码编辑器配色 + Space Grotesk 无衬线</b>。设计感，往往来自"知道该避开什么"。
+  </div>
+
+  <p class="body rv"><b>分发：</b>小团队少仓库，直接 check 进 <code class="k">./.claude/skills</code>；要规模化就建<b>内部插件市场</b>，团队按需安装。一个 skill 可以先在 sandbox 里有机生长，被广泛采用后再进市场。<b>度量：</b>用 <code class="k">PreToolUse</code> hook 记录使用，找出热门的，也揪出"该触发却没触发"的欠触发。</p>
+</section>
+
+<hr class="div">
+
+<!-- CHAPTER 3: WORKFLOWS -->
+<section id="workflows" class="ch c3 wrap">
+  <div class="ch-head rv">
+    <div class="no">03</div>
+    <div class="meta">
+      <div class="doc">A Harness for Every Task · Dynamic Workflows</div>
+      <h2>Workflows：给每个任务<em>配一套指挥系统</em></h2>
+    </div>
+  </div>
+
+  <p class="essence rv">Dynamic workflow 是让 Claude <b>临场为特定任务写一套定制的多 agent 协作系统</b>，而不是所有活儿都套用同一个静态框架。这套指挥框架叫 harness；默认那套是为编码优化的，但很多别的任务需要专门的协调策略。</p>
+
+  <h3 class="blk rv"><span class="tick"></span>它解决什么：单上下文的三种翻车</h3>
+  <p class="body rv">当 Claude 在<b>一个上下文窗口</b>里硬扛复杂任务时，会有三种典型失效。解法是 spawn 出一批各有隔离上下文、目标聚焦的 subagent。</p>
+  <div class="fails rv">
+    <div class="fail"><div class="en">Agentic Laziness</div><h4>偷懒式收工</h4><p>做了一部分就宣布完成。50 项的安全审查，做了 35 项就交差。</p></div>
+    <div class="fail"><div class="en">Self-Preferential Bias</div><h4>自我偏袒</h4><p>让它验证或评判自己的产出时，它会偏心自己的结论。</p></div>
+    <div class="fail"><div class="en">Goal Drift</div><h4>目标漂移</h4><p>多轮之后偏离原目标，约束在一次次 summary 里被悄悄丢掉。</p></div>
+  </div>
+
+  <h3 class="blk rv"><span class="tick"></span>六种编排范式</h3>
+  <div class="pats rv">
+    <div class="pat"><div class="idx">01</div><div><h4>Classify-and-Act<small>分类再行动</small></h4><p>一个分类 agent 先判断任务类型，再路由到不同 agent 或行为。</p></div></div>
+    <div class="pat"><div class="idx">02</div><div><h4>Fan-Out-and-Synthesize<small>扇出再综合</small></h4><p>拆成并行小步各自独立跑，再综合。综合步是一道栅栏，会等齐所有 subagent。</p></div></div>
+    <div class="pat"><div class="idx">03</div><div><h4>Adversarial Verification<small>对抗式验证</small></h4><p>为每个产出再派验证 agent，按特定 rubric 去挑刺。</p></div></div>
+    <div class="pat"><div class="idx">04</div><div><h4>Generate-and-Filter<small>生成再筛选</small></h4><p>先生成一堆方案，按 rubric 过滤、去重，只留最高质量的少数。</p></div></div>
+    <div class="pat"><div class="idx">05</div><div><h4>Tournament<small>锦标赛</small></h4><p>多个 agent 用不同方法竞争同一任务，评委用<b style="color:var(--text)">成对比较</b>选胜者。</p></div></div>
+    <div class="pat"><div class="idx">06</div><div><h4>Loop Until Done<small>干到完成</small></h4><p>开放式工作，反复 spawn 直到满足停止条件，而非固定跑几次。</p></div></div>
+  </div>
+
+  <div class="call flow rv">
+    <span class="lbl">技术上怎么跑</span>
+    动态 workflow 会<b>执行一个 JavaScript 文件</b>，里面有专门的函数来 spawn 和协调 subagent（也能用 JSON、Math、Array 处理数据）。它还能<b>决定每个 subagent 用哪个模型</b>、让它们在隔离的 worktree 里跑、以及从上次的 checkpoint 断点续跑。
+  </div>
+
+  <p class="body rv"><b>用武之地：</b>大迁移与重构（Bun 把 Zig 重写成 Rust 就用了这套）、深度研究、深度事实核查、排序与排名（成对比较比绝对打分更可靠）、根因调查（多个独立假设防自我偏袒）、大规模分诊（用隔离模式限制处理不可信内容的 agent 触碰高权限操作），以及设计、命名这类靠品味的探索决策。</p>
+
+  <div class="whenwrap rv">
+    <div class="when yes"><div class="h">该用</div><p><b>复杂、高价值</b>的任务；探索性工作；需要验证的场景；天然可并行的问题。代价是比单 agent <b>更费 token</b>。</p></div>
+    <div class="when no"><div class="h">别用</div><p>常规编码通常<b>不需要</b>一整套多 agent 评审团。动手前先问自己一句：<b>这真的需要更多算力吗？</b></p></div>
+  </div>
+
+  <p class="body rv"><b>动态 vs 静态：</b>静态 workflow（用 Agent SDK 或 <code class="k">claude -p</code> 写）能覆盖所有边界但偏通用；在 Opus 4.8 下，动态 workflow 能针对具体问题定制最优编排。<b>上手：</b>prompt 点名具体范式，搭配 <code class="k">/goal</code> 和 <code class="k">/loop</code>，给明确 token 预算（如"用 10k tokens"），在菜单里按 <code class="k">s</code> 保存，存到 <code class="k">~/.claude/workflows</code> 或用 skill 分发，并把共享的当模板保持灵活。</p>
+</section>
+
+<!-- SYNTHESIS -->
+<section id="synthesis" class="synth">
+  <div class="wrap">
+    <span class="eyebrow rv">三轴合体</span>
+    <h2 class="rv">拼在一起，才是完整那张图</h2>
+    <p class="sub rv">三根支柱不是并列的功能，而是同一个自主系统的三个维度。它们各管一段，缺一段，系统就转不起来。</p>
+
+    <div class="axes rv">
+      <div class="axc x1"><span class="glyph">&#8597;</span><div class="nm">Loops</div><div class="ax">时间轴</div><p>Claude <b style="color:var(--text)">何时、干多久</b>。让它持续、重复、无人值守地运转下去。</p></div>
+      <div class="axc x2"><span class="glyph">&#8595;</span><div class="nm">Skills</div><div class="ax">深度轴</div><p>Claude <b style="color:var(--text)">懂什么、会什么</b>。把专长和踩坑经验沉淀成可复用的资产。</p></div>
+      <div class="axc x3"><span class="glyph">&#8596;</span><div class="nm">Workflows</div><div class="ax">广度轴</div><p>Claude <b style="color:var(--text)">如何分身</b>。临场指挥多个隔离的自己，并行攻坚。</p></div>
+    </div>
+
+    <div class="combo rv">
+      <div class="eq"><span class="p">主动 loop（Proactive Loop）</span> =<br><code style="color:var(--loop)">/schedule</code> 定时 + <code style="color:var(--skill)">/goal</code> 目标 + <code style="color:var(--skill)">skills</code> 知识 + <code style="color:var(--flow)">dynamic workflows</code> 并行 + auto mode</div>
+      <div class="concl">这套合体形态，就是一个能<b>自己排期、自己判断完成、自己调用专长、自己分派子任务</b>的系统。</div>
+    </div>
+
+    <p class="sub rv" style="text-align:center;margin:30px auto 0;max-width:600px;">心智模型的转变：从"我问一句、它答一句"，走向"我定义一个能自运转的系统"。这正是三篇官方文档共同指向的方向。</p>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz" class="quiz wrap">
+  <div class="head rv">
+    <h2>自测题 · 实战版</h2>
+    <p>15 道真实场景判断题：前 10 题实战，后 5 题进阶到「进阶」「专家」两档。点选即时反馈，<code>/goal</code> 全对才停。</p>
+  </div>
+
+  <div class="score rv">
+    <div class="st">已答 <b id="answered">0</b> / 15 &nbsp; 答对 <b id="correct">0</b></div>
+    <button id="resetBtn">重做全部</button>
+  </div>
+
+  <div id="quizBox"></div>
+
+  <div class="result" id="resultBox">
+    <div class="big"><span id="scoreNum">0</span><span> / 15</span></div>
+    <div class="msg" id="resultMsg">.</div>
+    <div class="rsub" id="resultSub">.</div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="wrap">
+  <h3>回到原文 · Claude Code 官方文档</h3>
+  <div class="srcs">
+    <a class="src" href="https://claude.com/blog/getting-started-with-loops" target="_blank" rel="noopener"><span class="sw" style="background:var(--loop)"></span>Getting Started with Loops<span class="arw">&#8599;</span></a>
+    <a class="src" href="https://claude.com/blog/lessons-from-building-claude-code-how-we-use-skills" target="_blank" rel="noopener"><span class="sw" style="background:var(--skill)"></span>Lessons from Building Claude Code: How We Use Skills<span class="arw">&#8599;</span></a>
+    <a class="src" href="https://claude.com/blog/a-harness-for-every-task-dynamic-workflows-in-claude-code" target="_blank" rel="noopener"><span class="sw" style="background:var(--flow)"></span>A Harness for Every Task: Dynamic Workflows in Claude Code<span class="arw">&#8599;</span></a>
+  </div>
+  <p class="note">本页由 Claude Code 官方文档提炼整理，仅供个人学习，内容以原文为准。<br>用 design-taste-frontend skill 重做的暗色对照版：代码编辑器配色，Space Grotesk 无衬线，全站零 em-dash。</p>
+</footer>
+
+<script>
+/* progress */
+const prog=document.getElementById('progress');
+addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';},{passive:true});
+
+/* reveal */
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+/* accordion */
+document.querySelectorAll('#acc .acc-item').forEach(item=>{
+  const btn=item.querySelector('.acc-btn');
+  const panel=item.querySelector('.acc-panel');
+  btn.addEventListener('click',()=>{
+    const open=item.classList.contains('open');
+    if(open){panel.style.maxHeight=null;item.classList.remove('open');}
+    else{item.classList.add('open');panel.style.maxHeight=panel.scrollHeight+'px';}
+  });
+});
+
+/* quiz */
+const QUESTIONS=[
+ {t:1,lvl:1,cat:'Loop',q:'你让 Claude 优化首页性能，它跑了两轮就说"优化完成"，可你一测 Lighthouse 只有 72。下一步最好怎么做？',
+  opts:['再发一句"请继续优化，直到满意为止"','改用 <code>/goal 把 Lighthouse 跑到 90 以上，不到不停</code>','换一个更强的模型，让它从头再来一遍','自己逐条列出要改的地方，手动盯着它改'],
+  a:1,e:'这是典型的 agentic laziness（做一半就宣布完成）。"继续优化"依然模糊，它还会半途停；换模型、退回手工都没解决"何时才算完"。<b>/goal</b> 给一个可衡量的退出标准，由评估模型判断是否真达标，才治本。'},
+ {t:1,lvl:1,cat:'Loop',q:'你想让 Claude 每天早 9 点汇总前一天的新 issue，但你的电脑晚上会关机。用哪个更靠谱？',
+  opts:['<code>/schedule</code>：每天 9 点在云端跑','<code>/loop</code>：每 24 小时在本地重跑一次','写一个系统 cron 定时任务去调它','设个手机闹钟，到点自己手动触发'],
+  a:0,e:'<b>/loop</b> 在本地按间隔重跑，电脑一关就断。<b>/schedule</b> 把任务搬到云端持续执行，不依赖你的机器，正好解掉"会关机"这个约束。cron 脱离了 Claude 的能力，手动触发就谈不上自动化了。'},
+ {t:1,lvl:1,cat:'Loop',q:'目标是"每小时扫一遍反馈频道的 bug，发现就分诊并回复，本轮全部处理完才停"。最贴切的搭法是？',
+  opts:['只用 <code>/loop</code>，每小时重跑同一句 prompt','只用 <code>/goal</code>，剩下的让它自己看着办','<code>/schedule</code> 定时 + <code>/goal</code> 本轮不清完不停 + 一个装了分诊标准的 skill','写一个几百字的超长 prompt，把所有要求一次塞进去'],
+  a:2,e:'这就是"主动 loop"的组合拳：<b>/schedule</b> 管"每小时触发"，<b>/goal</b> 管"本轮不处理完不许停"，<b>skill</b> 提供稳定的分诊标准。单用任何一个都缺了另外两段；超长 prompt 既不可复用，也压不住偷懒收工。'},
+ {t:2,lvl:1,cat:'Skills',q:'团队里好几个人用 Claude 写迁移，都栽在同一个坑：orders 表是 append-only，不能 UPDATE。最省事的根治办法？',
+  opts:['每人每次都在 prompt 里手动提醒一句','建一个 skill，在 Gotchas 段写明 orders 表 append-only','在建表的 SQL 文件里加一行注释','在群里发条消息，通知全组注意'],
+  a:1,e:'skill 里价值最高的就是这种 <b>Gotchas（踩坑清单）</b>：把"反复失败的点"写进去，会自动触发、全组复用。手动提醒总有人忘，代码注释 Claude 不一定读到，群消息更留不住。'},
+ {t:2,lvl:1,cat:'Skills',q:'你写了个很好用的 skill，但 Claude 常常"该用的时候没用它"。最该先动哪里？',
+  opts:['把 skill 正文写得更详细、更长','把 skill 用 Python 重写一遍','给 skill 起一个更醒目的名字','改 description，写清适用场景并加入触发关键词'],
+  a:3,e:'skill 的 <b>description 决定它何时被触发</b>，而且是写给模型看的。欠触发（该用没用）几乎都出在描述不到位：补上适用场景和激活关键词最直接。正文长度、实现语言、名字都不是触发的关键。'},
+ {t:2,lvl:1,cat:'Skills',q:'你的 skill 越写越大，塞进了完整 API 文档、20 个示例和排错手册，结果 Claude 上下文被撑爆、抓不住重点。怎么重构？',
+  opts:['狠心删掉一大半内容','拆成 references / examples / scripts 文件夹，按情境把 Claude 指向具体文件','把所有内容压缩成一大段密集文字','硬拆成 5 个互不相关的独立 skill'],
+  a:1,e:'这是<b>渐进式披露</b>的经典场景：内容分层放进文件夹，用到哪块就指向哪个文件，而不是一次性全灌进上下文。删内容会丢信息，压成一段更难读，硬拆成 5 个又会失去内聚。'},
+ {t:3,lvl:1,cat:'Workflow',q:'你只是要给一个函数修个小 bug，心里冒出"要不要上多 agent workflow 显得专业一点"。该上吗？',
+  opts:['该，多个 agent 交叉验证更稳妥','该，反正现在 token 也便宜','不该，常规编码用不着，先问自己"这真的需要更多算力吗"','该，顺便练练手'],
+  a:2,e:'多 agent workflow 更费 token，常规编码通常<b>不需要</b>一整套评审团。官方给的判断句就是："这真的需要更多算力吗？" 把它留给复杂、高价值、可并行的任务，别为"显得专业"而堆复杂度。'},
+ {t:3,lvl:1,cat:'Workflow',q:'你让 Claude 做完一份 50 项的安全审查，再让"它自己"复核，它回你"全部通过"。这个结论为什么不能全信，怎么改？',
+  opts:['spawn 一个上下文隔离、只负责挑刺的验证 agent，按 rubric 对抗式复核','可以信，它已经逐条检查过了','让它把自查再原样跑一遍就行','既然不放心，索性全部人工重审一遍'],
+  a:0,e:'让模型评判自己的产出会触发 <b>self-preferential bias（自我偏袒）</b>。解法是开一个独立、只负责挑刺的验证 agent，拿明确 rubric 对抗式复核。"再自查一遍"还是自己查自己；全人工重审可行，但白白浪费了 workflow 的价值。'},
+ {t:3,lvl:1,cat:'Workflow',q:'你要把 200 条客户反馈按紧急程度排序。让 Claude 逐条打 1-10 分，结果分数飘忽、同一条重跑还给不同分。更可靠的做法？',
+  opts:['要求它打分时更仔细、更克制','每条打三次分再取平均','把 1-10 分改成 1-100 分，粒度更细','改用成对比较（pairwise），或锦标赛式两两对决来定序'],
+  a:3,e:'绝对打分本身就不稳，调细粒度、取平均都只是缓解。文档明确指出：<b>成对比较比绝对打分更可靠</b>。锦标赛范式让"评委"两两对决选胜者，正是为大规模定性排序设计的。'},
+ {t:3,lvl:1,cat:'Workflow',q:'你要做一份"竞品怎么用 AI"的深度调研，来源很多，又特别怕 Claude 编造事实。哪种 workflow 形态最合适？',
+  opts:['让一个 agent 一口气搜完、写完整篇报告','先让它写初稿，再让它自己核对有没有编造','你先把资料都搜齐、整理好，再喂给它写','扇出多路搜索与抓取，对每条声明做对抗式验证，再综合成带引用的报告'],
+  a:3,e:'深度研究最怕偷懒和编造。<b>扇出（fan-out）搜索抓取 + 对每条声明对抗式验证 + 综合成带引用的报告</b>正是官方给的范式：多来源并行、独立验证防幻觉。单 agent 一把梭易偷懒，让它自己核对又是自我偏袒，全靠人工搜又回到了原点。'},
+ {t:1,lvl:2,cat:'Loop',q:'你设了 <code>/schedule 每 5 分钟</code> 去查一个几乎从不变化的外部队列，任务本身没问题，但一周下来 token 烧得吓人。最该改哪里？',
+  opts:['把执行用的模型换成更便宜的那个','把 <code>/schedule</code> 直接改成 <code>/loop</code>','把"每 5 分钟"改成由事件触发，或把间隔拉长到贴合真实变化频率','把每次调用的上下文压得更短'],
+  a:2,e:'官方原则：例程间隔要<b>匹配真实变化频率</b>，能对事件做出反应就别按时间空转。队列几乎不变却每 5 分钟跑，绝大多数轮次是纯浪费；换模型、压上下文只省下零头，没治高频空转这个根因。'},
+ {t:2,lvl:2,cat:'Skills',q:'你给一个多环境部署流程写了 skill，把每一步命令、顺序、参数都写死成"第一步必须…第二步必须…"。换了个略有不同的环境，Claude 照着死步骤跑反而出错。问题在哪？',
+  opts:['你把 Claude 焊死在轨道上了（railroading）：应给足信息但保留灵活，让它按环境自己调整','skill 写得太少，应该把每一步再写得更细','应该改用 hook 把每一步都强制锁死','纯环境问题，跟 skill 无关'],
+  a:0,e:'这是 <b>avoid railroading</b>：写死的强制步骤序列在边界情形会崩。正确姿势是提供必要信息和判断依据，让 agent 按当前环境自己调整，而不是背命令。写更细、用 hook 锁死只会更僵。'},
+ {t:3,lvl:2,cat:'Workflow',q:'你要做一个 workflow 自动处理用户提交的反馈（其中可能夹带恶意指令），分诊后还要去改 issue、发回复（高权限操作）。怎么设计最稳？',
+  opts:['一个 agent 从读反馈到改 issue、发回复一条龙做完','先安排人工把所有反馈审一遍再说','干脆关掉改 issue、发回复这些高权限操作','用隔离（quarantine）模式：让读取不可信内容的 agent，与执行高权限操作的 agent 分离'],
+  a:3,e:'把"接触不可信输入"和"执行高权限动作"放同一个 agent，等于给 prompt injection 开门。官方的 <b>quarantine 隔离模式</b>：读取不可信内容的 agent 不能直接触发高权限操作，两者拆开。关掉高权限任务就做不成，纯人工又放弃了自动化。'},
+ {t:4,lvl:3,cat:'综合',q:'你要每晚自动把当天所有客户支持工单做"分诊 + 去重 + 生成次日待办"，工单量大、类型杂、还怕重复建单。哪套原语 + 编排组合最合理？',
+  opts:['<code>/schedule</code> 每晚 + <code>/goal</code> 本轮不清完不停 + workflow 内部先 classify 分流、再 fan-out 并行、对现存工单去重、最后综合成待办','<code>/schedule</code> 每晚 + 一个 agent 顺序读完所有工单直接产出','每晚你手动跑一次 <code>/goal</code>','写一个把所有规则塞进去的超长 prompt，单轮跑完'],
+  a:0,e:'这是"定时 + 目标 + 动态 workflow"的完整合体：<b>/schedule</b> 管触发，<b>/goal</b> 保证本轮清空，workflow 内部用 <b>classify-and-act</b> 分流、<b>fan-out</b> 并行、再对现存工单<b>去重</b>（triaging at scale）。单 agent 一条龙在大批量下必然偷懒加目标漂移；手动跑违背无人值守；超长 prompt 压不住这些失效。'},
+ {t:3,lvl:3,cat:'Workflow',q:'线上一个诡异 bug，你让 Claude 查根因。它很快给出一个"看起来合理"的结论，但你担心它先入为主、盯着第一条线索不放。怎么让根因调查更可靠？',
+  opts:['让它把那条结论论证得更详细、更有说服力','让它在同一轮里自己再想想有没有别的可能','从互不重叠的证据源独立生成多个竞争假设，再各自送进验证面板对抗检验','结论看起来合理，直接采纳'],
+  a:2,e:'单线程调查容易"锁定第一个假设 + 自我偏袒"。官方做法：从<b>互不重叠的证据</b>独立生成多个竞争假设，再逐个送进验证面板对抗检验，防止它偏袒自己最先想到的那个。论证更详细只是强化了偏见，同一轮自查还是同一个上下文。'},
+];
+
+const box=document.getElementById('quizBox'),answeredEl=document.getElementById('answered'),correctEl=document.getElementById('correct'),resultBox=document.getElementById('resultBox');
+let answered=0,correct=0;const KEYS=['A','B','C','D'];
+
+function render(){
+  box.innerHTML='';answered=0;correct=0;answeredEl.textContent='0';correctEl.textContent='0';resultBox.classList.remove('show');
+  QUESTIONS.forEach((item,qi)=>{
+    const q=document.createElement('div');q.className='q';
+    const lv=item.lvl||1;const lvlTxt=['','\u25cf\u25cb\u25cb 实战','\u25cf\u25cf\u25cb 进阶','\u25cf\u25cf\u25cf 专家'][lv];
+    q.innerHTML=`<div class="qn"><span class="qi">Q${qi+1}</span><span class="qt">${item.q}</span><span class="badges"><span class="lvl l${lv}">${lvlTxt}</span><span class="tg t${item.t}">${item.cat}</span></span></div>`;
+    const opts=document.createElement('div');opts.className='opts';
+    item.opts.forEach((o,oi)=>{
+      const b=document.createElement('div');b.className='opt';
+      b.innerHTML=`<span class="kx">${KEYS[oi]}</span><span>${o}</span>`;
+      b.addEventListener('click',()=>pick(q,opts,item,oi,exp));
+      opts.appendChild(b);
+    });
+    const exp=document.createElement('div');exp.className='explain';
+    q.appendChild(opts);q.appendChild(exp);box.appendChild(q);
+  });
+}
+function pick(q,opts,item,oi,exp){
+  if(q.dataset.done)return;q.dataset.done='1';answered++;
+  const kids=[...opts.children];
+  kids.forEach((el,i)=>{el.classList.add('disabled');if(i===item.a)el.classList.add('correct');else el.classList.add('dim');});
+  const ok=(oi===item.a);
+  if(ok)correct++;else{kids[oi].classList.add('wrong');kids[oi].classList.remove('dim');}
+  exp.innerHTML=`<span class="v ${ok?'ok':'no'}">${ok?'// 答对':'// 答错'}</span>${item.e}`;
+  exp.classList.add('show');
+  answeredEl.textContent=answered;correctEl.textContent=correct;
+  if(answered===QUESTIONS.length)finish();
+}
+function finish(){
+  const n=correct;document.getElementById('scoreNum').textContent=n;
+  let msg,sub;
+  if(n===15){msg='满分，连专家档都清了。';sub='深度、时间、广度三根轴，你是真能上手用了。';}
+  else if(n>=12){msg='相当扎实。';sub='实战没问题，进阶/专家档的错题回看一下就通关了。';}
+  else if(n>=9){msg='框架已经搭起来了。';sub='基础牢，难点在后 5 题的组合与边界判断上，再磨磨。';}
+  else if(n>=6){msg='方向对了，细节再抓抓。';sub='建议重读"三轴合体"，再啃后 5 题的进阶/专家场景。';}
+  else{msg='别急，回头再读一遍。';sub='从导读开始，按 深度、时间、广度 走一遍，再来挑战难档。';}
+  document.getElementById('resultMsg').textContent=msg;document.getElementById('resultSub').textContent=sub;
+  resultBox.classList.add('show');resultBox.scrollIntoView({behavior:'smooth',block:'center'});
+}
+document.getElementById('resetBtn').addEventListener('click',()=>{render();document.getElementById('quiz').scrollIntoView({behavior:'smooth'});});
+render();
+</script>
+</body>
+</html>
